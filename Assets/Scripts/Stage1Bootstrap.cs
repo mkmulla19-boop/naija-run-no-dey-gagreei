@@ -16,6 +16,9 @@ public sealed class Stage1Bootstrap : MonoBehaviour
     private static readonly Color BuildingColor = new Color(0.45f, 0.55f, 0.62f);
     private static readonly Color SignColor = new Color(0.05f, 0.20f, 0.28f);
     private static readonly Color LampColor = new Color(0.08f, 0.08f, 0.08f);
+    private static readonly Color DanfoColor = new Color(0.95f, 0.75f, 0.05f);
+    private static readonly Color SunColor = new Color(1f, 0.945f, 0.773f);
+    private static readonly Color LampLightColor = new Color(1f, 0.69f, 0.259f);
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void CreateFoundation()
@@ -77,14 +80,18 @@ public sealed class Stage1Bootstrap : MonoBehaviour
         follower.smoothSpeed = 10f;
         follower.playerTransform = player.transform;
 
-        if (FindFirstObjectByType<Light>() == null)
+        Light light = FindFirstObjectByType<Light>();
+        if (light == null)
         {
             GameObject lightObject = new GameObject("Stage1_Sun");
-            Light light = lightObject.AddComponent<Light>();
-            light.type = LightType.Directional;
-            light.intensity = 1.2f;
-            lightObject.transform.rotation = Quaternion.Euler(50f, -30f, 0f);
+            light = lightObject.AddComponent<Light>();
         }
+
+        light.type = LightType.Directional;
+        light.color = SunColor;
+        light.intensity = 1.2f;
+        light.transform.position = new Vector3(0f, 15f, 0f);
+        light.transform.rotation = Quaternion.Euler(50f, -30f, 0f);
     }
 
     private static void BuildSurroundings(Transform root)
@@ -96,6 +103,7 @@ public sealed class Stage1Bootstrap : MonoBehaviour
         Material buildingMaterial = CreateMaterial(BuildingColor);
         Material signMaterial = CreateMaterial(SignColor);
         Material lampMaterial = CreateMaterial(LampColor);
+        Material danfoMaterial = CreateMaterial(DanfoColor);
 
         CreatePrimitive("Sidewalk_Left", PrimitiveType.Cube, new Vector3(-5.5f, 0f, 100f), new Vector3(2f, 0.2f, 200f), sidewalkMaterial, root);
         CreatePrimitive("Sidewalk_Right", PrimitiveType.Cube, new Vector3(5.5f, 0f, 100f), new Vector3(2f, 0.2f, 200f), sidewalkMaterial, root);
@@ -103,16 +111,18 @@ public sealed class Stage1Bootstrap : MonoBehaviour
         for (int section = 0; section < 7; section++)
         {
             float z = 15f + section * 25f;
-            CreateMarketStall("MarketStall_Left_" + section, new Vector3(-7f, 1.1f, z), marketMaterial, canopyMaterial, root);
-            CreateMarketStall("MarketStall_Right_" + section, new Vector3(7f, 1.1f, z + 10f), marketMaterial, canopyMaterial, root);
+            CreateMarketStall("MarketStall_Left_" + section, new Vector3(-6.5f, 1f, z), marketMaterial, canopyMaterial, root);
+            CreateMarketStall("MarketStall_Right_" + section, new Vector3(6.5f, 1f, z + 10f), marketMaterial, canopyMaterial, root);
             CreatePalm("Palm_Left_" + section, new Vector3(-10f, 1.5f, z + 7f), vegetationMaterial, root);
             CreatePalm("Palm_Right_" + section, new Vector3(10f, 1.5f, z + 17f), vegetationMaterial, root);
-            CreateSign("LagosSign_Left_" + section, new Vector3(-8.5f, 1.8f, z + 4f), signMaterial, root);
-            CreateSign("LagosSign_Right_" + section, new Vector3(8.5f, 1.8f, z + 14f), signMaterial, root);
-            CreateStreetLamp("StreetLamp_Left_" + section, new Vector3(-5.8f, 2.5f, z + 12f), lampMaterial, root);
-            CreateStreetLamp("StreetLamp_Right_" + section, new Vector3(5.8f, 2.5f, z + 22f), lampMaterial, root);
+            CreateSign("LagosSign_Left_" + section, new Vector3(-8f, 4.5f, z + 4f), signMaterial, root);
+            CreateSign("LagosSign_Right_" + section, new Vector3(8f, 2.5f, z + 14f), signMaterial, root);
+            CreateStreetLamp("StreetLamp_Left_" + section, new Vector3(-5f, 0f, z + 5f), lampMaterial, root);
+            CreateStreetLamp("StreetLamp_Right_" + section, new Vector3(5f, 0f, z + 15f), lampMaterial, root);
             CreatePrimitive("Building_Left_" + section, PrimitiveType.Cube, new Vector3(-12f, 3f, z + 12f), new Vector3(3f, 6f, 8f), buildingMaterial, root);
             CreatePrimitive("Building_Right_" + section, PrimitiveType.Cube, new Vector3(12f, 3f, z + 20f), new Vector3(3f, 6f, 8f), buildingMaterial, root);
+            CreateDanfo("Danfo_Left_" + section, new Vector3(-7f, 0.75f, z + 23f), danfoMaterial, root);
+            CreateDanfo("Danfo_Right_" + section, new Vector3(7f, 0.75f, z + 33f), danfoMaterial, root);
         }
     }
 
@@ -137,7 +147,18 @@ public sealed class Stage1Bootstrap : MonoBehaviour
     private static void CreateStreetLamp(string objectName, Vector3 position, Material lampMaterial, Transform parent)
     {
         CreatePrimitive(objectName + "_Pole", PrimitiveType.Cylinder, position, new Vector3(0.1f, 2.5f, 0.1f), lampMaterial, parent);
-        CreatePrimitive(objectName + "_Light", PrimitiveType.Sphere, position + new Vector3(0f, 2.2f, 0f), Vector3.one * 0.25f, lampMaterial, parent);
+        GameObject head = CreatePrimitive(objectName + "_Light", PrimitiveType.Sphere, position + new Vector3(0f, 2.2f, 0f), Vector3.one * 0.25f, lampMaterial, parent);
+        Light pointLight = head.AddComponent<Light>();
+        pointLight.type = LightType.Point;
+        pointLight.color = LampLightColor;
+        pointLight.intensity = 2f;
+        pointLight.range = 8f;
+    }
+
+    private static void CreateDanfo(string objectName, Vector3 position, Material vehicleMaterial, Transform parent)
+    {
+        CreatePrimitive(objectName + "_Body", PrimitiveType.Cube, position, new Vector3(2.2f, 1.5f, 4.5f), vehicleMaterial, parent);
+        CreatePrimitive(objectName + "_Roof", PrimitiveType.Cube, position + new Vector3(0f, 0.9f, 0f), new Vector3(2.3f, 0.15f, 4.6f), vehicleMaterial, parent);
     }
 
     private static void BuildTestObstacles(Transform root)
