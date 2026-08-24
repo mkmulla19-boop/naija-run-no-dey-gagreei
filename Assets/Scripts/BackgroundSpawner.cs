@@ -24,8 +24,8 @@ public class BackgroundSpawner : MonoBehaviour
 
 
     [Header("Outer Depth Coordinates (Visible Range)")]
-    public float leftXPosition = -18.0f;
-    public float rightXPosition = 18.0f;
+    public float leftXPosition = -14.0f;
+    public float rightXPosition = 14.0f;
 
 
     private float spawnZ = 0.0f;
@@ -76,6 +76,7 @@ public class BackgroundSpawner : MonoBehaviour
         if (playerTransform == null)
         {
             GameObject playerObj = GameObject.Find("Player_Efe");
+            if (playerObj == null) playerObj = GameObject.FindWithTag("Player");
             if (playerObj != null)
             {
                 playerTransform = playerObj.transform;
@@ -95,7 +96,7 @@ public class BackgroundSpawner : MonoBehaviour
 
 
             initialized = true;
-            Debug.Log("[BackgroundSpawner] Visible walls locked at X = +/-18.");
+            Debug.Log("[BackgroundSpawner] Visible walls locked at X = +/-14.");
         }
     }
 
@@ -158,19 +159,19 @@ public class BackgroundSpawner : MonoBehaviour
     {
         if (leftBackgroundPrefabs == null || leftBackgroundPrefabs.Length == 0)
         {
-            leftBackgroundPrefabs = new GameObject[] { CreatePrimitiveTemplate("LeftBlock", new Vector3(6f, 10f, 30f), new Color(0.35f, 0.35f, 0.40f)) };
+            leftBackgroundPrefabs = new GameObject[] { CreatePrimitiveTemplate("LeftBlock", new Vector3(8f, 22f, 30f), new Color(0.65f, 0.35f, 0.25f)) };
         }
 
 
         if (rightBackgroundPrefabs == null || rightBackgroundPrefabs.Length == 0)
         {
-            rightBackgroundPrefabs = new GameObject[] { CreatePrimitiveTemplate("RightBlock", new Vector3(6f, 10f, 30f), new Color(0.35f, 0.35f, 0.40f)) };
+            rightBackgroundPrefabs = new GameObject[] { CreatePrimitiveTemplate("RightBlock", new Vector3(8f, 22f, 30f), new Color(0.65f, 0.35f, 0.25f)) };
         }
 
 
         if (groundExtensionPrefab == null)
         {
-            groundExtensionPrefab = CreatePrimitiveTemplate("GroundBlock", new Vector3(50f, 0.2f, 30f), new Color(0.25f, 0.2f, 0.15f));
+            groundExtensionPrefab = CreatePrimitiveTemplate("GroundBlock", new Vector3(50f, 0.2f, 30f), new Color(0.20f, 0.18f, 0.15f));
         }
     }
 
