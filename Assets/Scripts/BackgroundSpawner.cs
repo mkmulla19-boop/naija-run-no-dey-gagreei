@@ -1,6 +1,6 @@
 /*================================================================================
 SCRIPT NAME: BackgroundSpawner.cs
-TYPE: Single File, Self-Attaching Manager (Verified Coordinates)
+INSTRUCTIONS: Replace your existing BackgroundSpawner.cs file entirely with this code.
 ================================================================================
 */
 
@@ -23,9 +23,9 @@ public class BackgroundSpawner : MonoBehaviour
     public GameObject groundExtensionPrefab;
 
 
-    [Header("Outer Depth Coordinates")]
-    public float leftXPosition = -18.0f;
-    public float rightXPosition = 18.0f;
+    [Header("Outer Depth Coordinates (Visible Range)")]
+    public float leftXPosition = -12.0f;
+    public float rightXPosition = 12.0f;
 
 
     private float spawnZ = 0.0f;
@@ -95,7 +95,7 @@ public class BackgroundSpawner : MonoBehaviour
 
 
             initialized = true;
-            Debug.Log("[BackgroundSpawner] Verified coordinates locked: Player_Efe linked.");
+            Debug.Log("[BackgroundSpawner] Visible walls locked at X = +/-12.");
         }
     }
 
@@ -105,7 +105,7 @@ public class BackgroundSpawner : MonoBehaviour
         GameObject parentSegment = new GameObject("BackgroundSegment_" + spawnZ);
 
 
-        // 1. Spawn Ground Plane Extension (Y = -0.1f sits perfectly under main road surface)
+        // Ground Extension
         if (groundExtensionPrefab != null)
         {
             GameObject ground = Instantiate(groundExtensionPrefab, new Vector3(0f, -0.1f, spawnZ), Quaternion.identity);
@@ -113,26 +113,26 @@ public class BackgroundSpawner : MonoBehaviour
         }
 
 
-        // 2. Spawn Far-Left Filler (X = -18, Y = 4.0f so 8m tall box rests on ground level)
+        // Far-Left Blockers (X = -12)
         if (leftBackgroundPrefabs != null && leftBackgroundPrefabs.Length > 0)
         {
             int idx = Random.Range(0, leftBackgroundPrefabs.Length);
             if (leftBackgroundPrefabs[idx] != null)
             {
-                Vector3 leftPos = new Vector3(leftXPosition, 4.0f, spawnZ);
+                Vector3 leftPos = new Vector3(leftXPosition, 5.0f, spawnZ);
                 GameObject leftObj = Instantiate(leftBackgroundPrefabs[idx], leftPos, Quaternion.identity);
                 leftObj.transform.SetParent(parentSegment.transform);
             }
         }
 
 
-        // 3. Spawn Far-Right Filler (X = +18, Y = 4.0f so 8m tall box rests on ground level)
+        // Far-Right Blockers (X = +12)
         if (rightBackgroundPrefabs != null && rightBackgroundPrefabs.Length > 0)
         {
             int idx = Random.Range(0, rightBackgroundPrefabs.Length);
             if (rightBackgroundPrefabs[idx] != null)
             {
-                Vector3 rightPos = new Vector3(rightXPosition, 4.0f, spawnZ);
+                Vector3 rightPos = new Vector3(rightXPosition, 5.0f, spawnZ);
                 GameObject rightObj = Instantiate(rightBackgroundPrefabs[idx], rightPos, Quaternion.Euler(0, 180, 0));
                 rightObj.transform.SetParent(parentSegment.transform);
             }
@@ -158,19 +158,19 @@ public class BackgroundSpawner : MonoBehaviour
     {
         if (leftBackgroundPrefabs == null || leftBackgroundPrefabs.Length == 0)
         {
-            leftBackgroundPrefabs = new GameObject[] { CreatePrimitiveTemplate("LeftBlock", new Vector3(4f, 8f, 30f), new Color(0.3f, 0.3f, 0.35f)) };
+            leftBackgroundPrefabs = new GameObject[] { CreatePrimitiveTemplate("LeftBlock", new Vector3(6f, 10f, 30f), new Color(0.35f, 0.35f, 0.40f)) };
         }
 
 
         if (rightBackgroundPrefabs == null || rightBackgroundPrefabs.Length == 0)
         {
-            rightBackgroundPrefabs = new GameObject[] { CreatePrimitiveTemplate("RightBlock", new Vector3(4f, 8f, 30f), new Color(0.3f, 0.3f, 0.35f)) };
+            rightBackgroundPrefabs = new GameObject[] { CreatePrimitiveTemplate("RightBlock", new Vector3(6f, 10f, 30f), new Color(0.35f, 0.35f, 0.40f)) };
         }
 
 
         if (groundExtensionPrefab == null)
         {
-            groundExtensionPrefab = CreatePrimitiveTemplate("GroundBlock", new Vector3(60f, 0.2f, 30f), new Color(0.25f, 0.2f, 0.15f));
+            groundExtensionPrefab = CreatePrimitiveTemplate("GroundBlock", new Vector3(50f, 0.2f, 30f), new Color(0.25f, 0.2f, 0.15f));
         }
     }
 
@@ -189,8 +189,12 @@ public class BackgroundSpawner : MonoBehaviour
         Renderer r = template.GetComponent<Renderer>();
         if (r != null)
         {
-            r.material = new Material(Shader.Find("Sprites/Default"));
-            r.material.color = col;
+            Shader sh = Shader.Find("Universal Render Pipeline/Lit");
+            if (sh == null) sh = Shader.Find("Standard");
+            r.material = new Material(sh);
+
+            if (r.material.HasProperty("_BaseColor")) r.material.SetColor("_BaseColor", col);
+            else r.material.color = col;
         }
 
 
