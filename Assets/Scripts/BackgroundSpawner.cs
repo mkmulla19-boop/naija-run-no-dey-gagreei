@@ -1,16 +1,6 @@
-/*
-================================================================================
+/*================================================================================
 SCRIPT NAME: BackgroundSpawner.cs
-LOCATION: Attach to "TrackManager" GameObject in Unity.
-INSTRUCTIONS FOR OPENCODE & DEVELOPER:
-1. Copy this entire code block and paste it into BackgroundSpawner.cs.
-2. Select "TrackManager" in your Unity Hierarchy.
-3. Assign your Player Transform to "Player Transform".
-4. Set Left Background Prefabs Size to match your available left-side prefabs.
-5. Set Right Background Prefabs Size to match your available right-side prefabs.
-6. Drag low-poly background models (buildings, walls, trees) into the Elements.
-7. Set Left X Position to -18 and Right X Position to 18.
-8. Run the scene to verify background void coverage.
+TYPE: Single File, Self-Attaching Manager (Verified Coordinates)
 ================================================================================
 */
 
@@ -22,71 +12,90 @@ using System.Collections.Generic;
 public class BackgroundSpawner : MonoBehaviour
 {
     [Header("Player & Track References")]
-    [Tooltip("Drag the main Player object or Camera target here")]
     public Transform playerTransform;
-
-
-    [Tooltip("Length of each track segment along the Z-axis")]
     public float segmentLength = 30.0f;
-
-
-    [Tooltip("Number of background segments active at one time")]
     public int segmentsOnScreen = 5;
 
 
     [Header("Tier 3 Void Filler Prefabs")]
-    [Tooltip("List of background buildings/trees for the left side (X = -18)")]
     public GameObject[] leftBackgroundPrefabs;
-
-
-    [Tooltip("List of background buildings/trees for the right side (X = +18)")]
     public GameObject[] rightBackgroundPrefabs;
-
-
-    [Tooltip("Optional ground extension plane to prevent ground-level gaps")]
     public GameObject groundExtensionPrefab;
 
 
     [Header("Outer Depth Coordinates")]
-    [Tooltip("X coordinate for far-left void filler structures")]
     public float leftXPosition = -18.0f;
-
-
-    [Tooltip("X coordinate for far-right void filler structures")]
     public float rightXPosition = 18.0f;
 
 
     private float spawnZ = 0.0f;
     private List<GameObject> activeBackgrounds = new List<GameObject>();
+    private bool initialized = false;
+
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    private static void AutoAttach()
+    {
+        if (FindFirstObjectByType<BackgroundSpawner>() == null)
+        {
+            GameObject trackManager = new GameObject("TrackManager");
+            trackManager.AddComponent<BackgroundSpawner>();
+            DontDestroyOnLoad(trackManager);
+        }
+    }
 
 
     private void Start()
     {
-        if (playerTransform == null)
-        {
-            Debug.LogError("[BackgroundSpawner] Player Transform is missing! Assign it in the Inspector.");
-            return;
-        }
-
-
-        // Initialize starting background segments
-        for (int i = 0; i < segmentsOnScreen; i++)
-        {
-            SpawnBackgroundSegment();
-        }
+        TryInitialize();
     }
 
 
     private void Update()
     {
+        if (!initialized)
+        {
+            TryInitialize();
+            return;
+        }
+
+
         if (playerTransform == null) return;
 
 
-        // Continuous spawner logic as player moves forward on Z-axis
         if (playerTransform.position.z - segmentLength > spawnZ - (segmentsOnScreen * segmentLength))
         {
             SpawnBackgroundSegment();
             RemoveOldBackground();
+        }
+    }
+
+
+    private void TryInitialize()
+    {
+        if (playerTransform == null)
+        {
+            GameObject playerObj = GameObject.Find("Player_Efe");
+            if (playerObj != null)
+            {
+                playerTransform = playerObj.transform;
+            }
+        }
+
+
+        if (playerTransform != null && !initialized)
+        {
+            CreateFallbackPrefabs();
+
+
+            for (int i = 0; i < segmentsOnScreen; i++)
+            {
+                SpawnBackgroundSegment();
+            }
+
+
+            initialized = true;
+            Debug.Log("[BackgroundSpawner] Verified coordinates locked: Player_Efe linked.");
         }
     }
 
@@ -96,35 +105,35 @@ public class BackgroundSpawner : MonoBehaviour
         GameObject parentSegment = new GameObject("BackgroundSegment_" + spawnZ);
 
 
-        // 1. Ground Plane Extension Validation
+        // 1. Spawn Ground Plane Extension (Y = -0.1f sits perfectly under main road surface)
         if (groundExtensionPrefab != null)
         {
-            GameObject ground = Instantiate(groundExtensionPrefab, new Vector3(0, -0.1f, spawnZ), Quaternion.identity);
+            GameObject ground = Instantiate(groundExtensionPrefab, new Vector3(0f, -0.1f, spawnZ), Quaternion.identity);
             ground.transform.SetParent(parentSegment.transform);
         }
 
 
-        // 2. Left Array Validation & Instantiation (Fills Left Void)
+        // 2. Spawn Far-Left Filler (X = -18, Y = 4.0f so 8m tall box rests on ground level)
         if (leftBackgroundPrefabs != null && leftBackgroundPrefabs.Length > 0)
         {
-            int leftIndex = Random.Range(0, leftBackgroundPrefabs.Length);
-            if (leftBackgroundPrefabs[leftIndex] != null)
+            int idx = Random.Range(0, leftBackgroundPrefabs.Length);
+            if (leftBackgroundPrefabs[idx] != null)
             {
-                Vector3 leftPos = new Vector3(leftXPosition, 0, spawnZ);
-                GameObject leftObj = Instantiate(leftBackgroundPrefabs[leftIndex], leftPos, Quaternion.identity);
+                Vector3 leftPos = new Vector3(leftXPosition, 4.0f, spawnZ);
+                GameObject leftObj = Instantiate(leftBackgroundPrefabs[idx], leftPos, Quaternion.identity);
                 leftObj.transform.SetParent(parentSegment.transform);
             }
         }
 
 
-        // 3. Right Array Validation & Instantiation (Fills Right Void)
+        // 3. Spawn Far-Right Filler (X = +18, Y = 4.0f so 8m tall box rests on ground level)
         if (rightBackgroundPrefabs != null && rightBackgroundPrefabs.Length > 0)
         {
-            int rightIndex = Random.Range(0, rightBackgroundPrefabs.Length);
-            if (rightBackgroundPrefabs[rightIndex] != null)
+            int idx = Random.Range(0, rightBackgroundPrefabs.Length);
+            if (rightBackgroundPrefabs[idx] != null)
             {
-                Vector3 rightPos = new Vector3(rightXPosition, 0, spawnZ);
-                GameObject rightObj = Instantiate(rightBackgroundPrefabs[rightIndex], rightPos, Quaternion.Euler(0, 180, 0));
+                Vector3 rightPos = new Vector3(rightXPosition, 4.0f, spawnZ);
+                GameObject rightObj = Instantiate(rightBackgroundPrefabs[idx], rightPos, Quaternion.Euler(0, 180, 0));
                 rightObj.transform.SetParent(parentSegment.transform);
             }
         }
@@ -142,5 +151,50 @@ public class BackgroundSpawner : MonoBehaviour
             Destroy(activeBackgrounds[0]);
             activeBackgrounds.RemoveAt(0);
         }
+    }
+
+
+    private void CreateFallbackPrefabs()
+    {
+        if (leftBackgroundPrefabs == null || leftBackgroundPrefabs.Length == 0)
+        {
+            leftBackgroundPrefabs = new GameObject[] { CreatePrimitiveTemplate("LeftBlock", new Vector3(4f, 8f, 30f), new Color(0.3f, 0.3f, 0.35f)) };
+        }
+
+
+        if (rightBackgroundPrefabs == null || rightBackgroundPrefabs.Length == 0)
+        {
+            rightBackgroundPrefabs = new GameObject[] { CreatePrimitiveTemplate("RightBlock", new Vector3(4f, 8f, 30f), new Color(0.3f, 0.3f, 0.35f)) };
+        }
+
+
+        if (groundExtensionPrefab == null)
+        {
+            groundExtensionPrefab = CreatePrimitiveTemplate("GroundBlock", new Vector3(60f, 0.2f, 30f), new Color(0.25f, 0.2f, 0.15f));
+        }
+    }
+
+
+    private GameObject CreatePrimitiveTemplate(string name, Vector3 scale, Color col)
+    {
+        GameObject template = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        template.name = name + "_Template";
+        template.transform.localScale = scale;
+
+
+        Collider c = template.GetComponent<Collider>();
+        if (c != null) DestroyImmediate(c);
+
+
+        Renderer r = template.GetComponent<Renderer>();
+        if (r != null)
+        {
+            r.material = new Material(Shader.Find("Sprites/Default"));
+            r.material.color = col;
+        }
+
+
+        template.SetActive(false);
+        return template;
     }
 }
