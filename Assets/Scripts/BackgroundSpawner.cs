@@ -24,8 +24,8 @@ public class BackgroundSpawner : MonoBehaviour
 
 
     [Header("Outer Depth Coordinates (Visible Range)")]
-    public float leftXPosition = -12.0f;
-    public float rightXPosition = 12.0f;
+    public float leftXPosition = -18.0f;
+    public float rightXPosition = 18.0f;
 
 
     private float spawnZ = 0.0f;
@@ -95,7 +95,7 @@ public class BackgroundSpawner : MonoBehaviour
 
 
             initialized = true;
-            Debug.Log("[BackgroundSpawner] Visible walls locked at X = +/-12.");
+            Debug.Log("[BackgroundSpawner] Visible walls locked at X = +/-18.");
         }
     }
 
