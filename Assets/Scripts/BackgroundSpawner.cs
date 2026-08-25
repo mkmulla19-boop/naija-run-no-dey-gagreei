@@ -22,6 +22,7 @@ namespace NaijaRun.Environment
         private float spawnZ = 0.0f;
         private List<GameObject> activeBackgrounds = new List<GameObject>();
         private bool initialized = false;
+        private Transform environmentContainer;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void AutoAttach()
@@ -70,6 +71,10 @@ namespace NaijaRun.Environment
 
             if (playerTransform != null && !initialized)
             {
+                GameObject env = GameObject.Find("--- ENVIRONMENT ---");
+                if (env == null) env = new GameObject("--- ENVIRONMENT ---");
+                environmentContainer = env.transform;
+
                 CreateFallbackPrefabs();
 
                 for (int i = 0; i < segmentsOnScreen; i++)
@@ -85,6 +90,8 @@ namespace NaijaRun.Environment
         private void SpawnBackgroundSegment()
         {
             GameObject parentSegment = new GameObject("BackgroundSegment_" + spawnZ);
+            if (environmentContainer != null)
+                parentSegment.transform.SetParent(environmentContainer);
 
             if (groundExtensionPrefab != null)
             {
@@ -150,6 +157,8 @@ namespace NaijaRun.Environment
             GameObject template = GameObject.CreatePrimitive(PrimitiveType.Cube);
             template.name = name + "_Template";
             template.transform.localScale = scale;
+            if (environmentContainer != null)
+                template.transform.SetParent(environmentContainer);
 
             Collider c = template.GetComponent<Collider>();
             if (c != null) DestroyImmediate(c);

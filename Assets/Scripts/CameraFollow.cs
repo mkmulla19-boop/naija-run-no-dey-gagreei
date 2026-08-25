@@ -18,13 +18,8 @@ namespace NaijaRun.Environment
             if (playerTransform == null)
                 return;
 
-            Vector3 targetPosition = new Vector3(
-                offset.x,
-                offset.y,
-                playerTransform.position.z + offset.z
-            );
-
-            transform.position = Vector3.Lerp(transform.position, targetPosition, smoothSpeed * Time.deltaTime);
+            float smoothX = Mathf.Lerp(transform.position.x, playerTransform.position.x + offset.x, smoothSpeed * Time.deltaTime);
+            transform.position = new Vector3(smoothX, offset.y, playerTransform.position.z + offset.z);
         }
     }
 }
