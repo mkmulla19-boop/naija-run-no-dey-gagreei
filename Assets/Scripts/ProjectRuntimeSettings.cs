@@ -1,11 +1,14 @@
 using UnityEngine;
 
-public static class ProjectRuntimeSettings
+namespace NaijaRun.Core
 {
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-    private static void Apply()
+    public static class ProjectRuntimeSettings
     {
-        Application.targetFrameRate = 60;
-        QualitySettings.vSyncCount = 0;
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        private static void Apply()
+        {
+            Application.targetFrameRate = 60;
+            QualitySettings.vSyncCount = 0;
+        }
     }
 }

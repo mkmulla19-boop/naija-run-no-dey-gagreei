@@ -1,33 +1,36 @@
 using UnityEngine;
 
-public enum CollectibleType
+namespace NaijaRun.Environment
 {
-    NairaCoin,
-    BoostItem,
-    NaijaFuel
-}
-
-public sealed class CollectibleItem : MonoBehaviour
-{
-    public CollectibleType type;
-    public float rotationSpeed = 90f;
-
-    private void Update()
+    public enum CollectibleType
     {
-        transform.Rotate(Vector3.up * rotationSpeed * Time.deltaTime, Space.World);
+        NairaCoin,
+        BoostItem,
+        NaijaFuel
     }
 
-    private void OnTriggerEnter(Collider other)
+    public sealed class CollectibleItem : MonoBehaviour
     {
-        if (!other.CompareTag("Player"))
-            return;
+        public CollectibleType type;
+        public float rotationSpeed = 90f;
 
-        GameObject effect = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        effect.name = "CollectionEffect";
-        effect.transform.position = transform.position;
-        effect.transform.localScale = Vector3.one * 0.3f;
-        Destroy(effect.GetComponent<Collider>());
-        Destroy(effect, 0.2f);
-        Destroy(gameObject);
+        private void Update()
+        {
+            transform.Rotate(Vector3.up * rotationSpeed * Time.deltaTime, Space.World);
+        }
+
+        private void OnTriggerEnter(Collider other)
+        {
+            if (!other.CompareTag("Player"))
+                return;
+
+            GameObject effect = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            effect.name = "CollectionEffect";
+            effect.transform.position = transform.position;
+            effect.transform.localScale = Vector3.one * 0.3f;
+            Destroy(effect.GetComponent<Collider>());
+            Destroy(effect, 0.2f);
+            Destroy(gameObject);
+        }
     }
 }
